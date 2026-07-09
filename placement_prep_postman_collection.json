@@ -1,0 +1,291 @@
+{
+	"info": {
+		"_postman_id": "f512b9d8-9df8-4f91-8bb2-f542d9cf88a7",
+		"name": "Placement Prep Platform",
+		"description": "Postman collection to test the AI-Powered Placement Prep Platform API. Includes Authentication, Problems management, and DSA Submissions tracking.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Shyam Sunder\",\n    \"email\": \"shyam@placementprep.com\",\n    \"password\": \"password123\",\n    \"branch\": \"Computer Science\",\n    \"graduationYear\": 2026\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						},
+						"description": "Registers a new user on the platform. Change email domain to @placementprep.com if you want admin privileges."
+					},
+					"response": []
+				},
+				{
+					"name": "Login User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.token) {",
+									"    pm.collectionVariables.set(\"jwt_token\", jsonData.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"shyam@placementprep.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Authenticates user credentials and automatically stores the JWT token in the collection variable 'jwt_token'."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Sanity Check",
+			"item": [
+				{
+					"name": "Hello World",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/hello",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"hello"
+							]
+						},
+						"description": "Public endpoint to verify the Spring Boot server is active."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "DSA Problems",
+			"item": [
+				{
+					"name": "Add Problem (Admin Only)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Two Sum\",\n    \"difficulty\": \"EASY\",\n    \"topic\": \"Arrays\",\n    \"link\": \"https://leetcode.com/problems/two-sum/\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/problems",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"problems"
+							]
+						},
+						"description": "Adds a new DSA problem. Requires Bearer Token. Only allowed if user email ends with @placementprep.com or is admin@gmail.com."
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Problems",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/problems",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"problems"
+							]
+						},
+						"description": "Retrieves the list of all DSA problems. Requires Bearer Token."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Submissions",
+			"item": [
+				{
+					"name": "Log Problem Submission",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"problemId\": 1,\n    \"status\": \"SOLVED\",\n    \"notes\": \"Solved using HashMap with O(N) time complexity and O(N) space complexity.\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/submissions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"submissions"
+							]
+						},
+						"description": "Logs an attempt or solution for a specific problem. Requires Bearer Token."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Submission History",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/submissions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"submissions"
+							]
+						},
+						"description": "Fetches the full practice history of the authenticated user. Requires Bearer Token."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "jwt_token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
