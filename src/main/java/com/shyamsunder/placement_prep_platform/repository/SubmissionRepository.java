@@ -23,4 +23,13 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
             @Param("userId") Long userId,
             @Param("status") SubmissionStatus status
     );
+
+    @Query("SELECT s.problem.topic, COUNT(DISTINCT s.problem.id) " +
+           "FROM Submission s " +
+           "WHERE s.user.id = :userId AND s.status = :status " +
+           "GROUP BY s.problem.topic")
+    List<Object[]> countSolvedProblemsByTopic(
+            @Param("userId") Long userId,
+            @Param("status") SubmissionStatus status
+    );
 }

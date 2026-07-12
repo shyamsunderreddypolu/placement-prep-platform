@@ -37,4 +37,19 @@ public class DashboardService {
 
         return counts;
     }
+
+    public Map<String, Long> getSolvedProblemsCountByTopic(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+
+        List<Object[]> results = submissionRepository.countSolvedProblemsByTopic(user.getId(), SubmissionStatus.SOLVED);
+        Map<String, Long> counts = new java.util.HashMap<>();
+        for (Object[] result : results) {
+            String topic = (String) result[0];
+            Long count = (Long) result[1];
+            counts.put(topic, count);
+        }
+
+        return counts;
+    }
 }

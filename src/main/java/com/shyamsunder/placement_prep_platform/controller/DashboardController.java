@@ -23,4 +23,10 @@ public class DashboardController {
         String email = principal.getName();
         return ResponseEntity.ok(dashboardService.getSolvedProblemsCountByDifficulty(email));
     }
+
+    @GetMapping("/topic")
+    public ResponseEntity<Map<String, Long>> getSolvedProblemsByTopic(Principal principal) {
+        String email = principal.getName();
+        return ResponseEntity.ok(dashboardService.getSolvedProblemsCountByTopic(email));
+    }
 }

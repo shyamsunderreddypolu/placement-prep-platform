@@ -289,6 +289,71 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "Dashboard",
+			"item": [
+				{
+					"name": "Get Solved Problems by Difficulty",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/dashboard/difficulty",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"dashboard",
+								"difficulty"
+							]
+						},
+						"description": "Retrieves the count of solved problems grouped by difficulty for the authenticated user. Requires Bearer Token."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Solved Problems by Topic",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/dashboard/topic",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"dashboard",
+								"topic"
+							]
+						},
+						"description": "Retrieves the count of solved problems grouped by topic for the authenticated user. Requires Bearer Token."
+					},
+					"response": []
+				}
+			]
 		}
 	],
 	"event": [
