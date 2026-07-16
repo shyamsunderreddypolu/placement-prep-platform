@@ -4,12 +4,14 @@ import com.shyamsunder.placement_prep_platform.dto.SubmissionRequest;
 import com.shyamsunder.placement_prep_platform.dto.SubmissionResponse;
 import com.shyamsunder.placement_prep_platform.entity.Problem;
 import com.shyamsunder.placement_prep_platform.entity.Submission;
+import com.shyamsunder.placement_prep_platform.entity.SubmissionStatus;
 import com.shyamsunder.placement_prep_platform.entity.User;
 import com.shyamsunder.placement_prep_platform.repository.ProblemRepository;
 import com.shyamsunder.placement_prep_platform.repository.SubmissionRepository;
 import com.shyamsunder.placement_prep_platform.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,7 +23,9 @@ public class SubmissionService {
     private final SubmissionRepository submissionRepository;
     private final UserRepository userRepository;
     private final ProblemRepository problemRepository;
+    private final StreakService streakService;
 
+    @Transactional
     public SubmissionResponse logSubmission(SubmissionRequest request, String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
@@ -37,6 +41,12 @@ public class SubmissionService {
                 .build();
 
         Submission savedSubmission = submissionRepository.save(submission);
+
+        // Update solved streak if submission is successful
+        if (request.getStatus() == SubmissionStatus.SOLVED) {
+            streakService.updateStreak(user);
+        }
+
         return mapToResponse(savedSubmission);
     }
 
