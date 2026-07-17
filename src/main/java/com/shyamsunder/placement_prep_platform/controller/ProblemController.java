@@ -2,6 +2,7 @@ package com.shyamsunder.placement_prep_platform.controller;
 
 import com.shyamsunder.placement_prep_platform.dto.ProblemRequest;
 import com.shyamsunder.placement_prep_platform.dto.ProblemResponse;
+import com.shyamsunder.placement_prep_platform.entity.Difficulty;
 import com.shyamsunder.placement_prep_platform.service.ProblemService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +38,10 @@ public class ProblemController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ProblemResponse>> getAllProblems() {
-        return ResponseEntity.ok(problemService.getAllProblems());
+    public ResponseEntity<List<ProblemResponse>> getProblems(
+            @RequestParam(required = false) String topic,
+            @RequestParam(required = false) Difficulty difficulty
+    ) {
+        return ResponseEntity.ok(problemService.getProblems(topic, difficulty));
     }
 }

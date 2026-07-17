@@ -2,6 +2,7 @@ package com.shyamsunder.placement_prep_platform.service;
 
 import com.shyamsunder.placement_prep_platform.dto.ProblemRequest;
 import com.shyamsunder.placement_prep_platform.dto.ProblemResponse;
+import com.shyamsunder.placement_prep_platform.entity.Difficulty;
 import com.shyamsunder.placement_prep_platform.entity.Problem;
 import com.shyamsunder.placement_prep_platform.repository.ProblemRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,23 @@ public class ProblemService {
     public List<ProblemResponse> getAllProblems() {
         return problemRepository.findAll()
                 .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    public List<ProblemResponse> getProblems(String topic, Difficulty difficulty) {
+        List<Problem> problems;
+        if (topic != null && difficulty != null) {
+            problems = problemRepository.findByTopicAndDifficulty(topic, difficulty);
+        } else if (topic != null) {
+            problems = problemRepository.findByTopic(topic);
+        } else if (difficulty != null) {
+            problems = problemRepository.findByDifficulty(difficulty);
+        } else {
+            problems = problemRepository.findAll();
+        }
+
+        return problems.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }

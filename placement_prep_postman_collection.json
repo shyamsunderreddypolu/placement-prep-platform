@@ -167,13 +167,27 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/api/problems",
+							"raw": "{{base_url}}/api/problems?topic=Arrays&difficulty=EASY",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"api",
 								"problems"
+							],
+							"query": [
+								{
+									"key": "topic",
+									"value": "Arrays",
+									"disabled": true,
+									"description": "Filter by DSA topic (optional)"
+								},
+								{
+									"key": "difficulty",
+									"value": "EASY",
+									"disabled": true,
+									"description": "Filter by difficulty (optional)"
+								}
 							]
 						},
 						"description": "Retrieves the list of all DSA problems. Requires Bearer Token."
