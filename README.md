@@ -65,6 +65,33 @@ placement-prep-platform/
 
 ---
 
+## 🔌 REST API Endpoints
+
+All secured endpoints require the `Authorization: Bearer <token>` header.
+
+### 🔑 Authentication
+* `POST /api/auth/register` (Public): Onboards a new user.
+* `POST /api/auth/login` (Public): Validates credentials and returns a JWT token.
+
+### 🧪 Sanity Check
+* `GET /api/hello` (Public): Verifies the Spring Boot server is alive and responding.
+
+### 📚 DSA Problems Management
+* `GET /api/problems` (Secured): Retrieves the list of problems. Supports filtering via optional query parameters:
+  * `?topic=Arrays` (e.g., Arrays, Trees, Dynamic Programming)
+  * `?difficulty=EASY` (values: `EASY`, `MEDIUM`, `HARD`)
+* `POST /api/problems` (Secured - Admin Only): Adds a new DSA problem. Access restricted to emails ending in `@placementprep.com` or `admin@gmail.com`.
+
+### 📝 Practice Submissions
+* `POST /api/submissions` (Secured): Logs a submission (status: `SOLVED` or `ATTEMPTED`) with optional notes. Solved submissions automatically update and persist solving streaks.
+* `GET /api/submissions` (Secured): Fetches the chronological submission history of the authenticated user.
+
+### 📊 Analytics Dashboard
+* `GET /api/dashboard/difficulty` (Secured): Retrieves solved problem counts grouped by difficulty level (EASY, MEDIUM, HARD).
+* `GET /api/dashboard/topic` (Secured): Retrieves solved problem counts grouped by topic categories.
+
+---
+
 ## 💻 Setup & Installation (Local Development)
 
 ### Prerequisites
