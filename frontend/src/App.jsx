@@ -4,6 +4,7 @@ import { AuthProvider, AuthContext } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Problems from './pages/Problems';
 
 const PlaceholderDashboard = () => {
   const { user, logout } = useContext(AuthContext);
@@ -31,6 +32,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <PlaceholderDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/problems"
+            element={
+              <ProtectedRoute>
+                <Problems />
               </ProtectedRoute>
             }
           />
