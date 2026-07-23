@@ -29,4 +29,10 @@ public class DashboardController {
         String email = principal.getName();
         return ResponseEntity.ok(dashboardService.getSolvedProblemsCountByTopic(email));
     }
+
+    @GetMapping("/streak")
+    public ResponseEntity<com.shyamsunder.placement_prep_platform.dto.StreakResponse> getUserStreak(Principal principal) {
+        String email = principal.getName();
+        return ResponseEntity.ok(dashboardService.getUserStreak(email));
+    }
 }

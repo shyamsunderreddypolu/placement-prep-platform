@@ -1,6 +1,8 @@
 package com.shyamsunder.placement_prep_platform.service;
 
+import com.shyamsunder.placement_prep_platform.dto.StreakResponse;
 import com.shyamsunder.placement_prep_platform.entity.Difficulty;
+import com.shyamsunder.placement_prep_platform.entity.Streak;
 import com.shyamsunder.placement_prep_platform.entity.SubmissionStatus;
 import com.shyamsunder.placement_prep_platform.entity.User;
 import com.shyamsunder.placement_prep_platform.repository.SubmissionRepository;
@@ -18,6 +20,7 @@ public class DashboardService {
 
     private final SubmissionRepository submissionRepository;
     private final UserRepository userRepository;
+    private final StreakService streakService;
 
     public Map<Difficulty, Long> getSolvedProblemsCountByDifficulty(String email) {
         User user = userRepository.findByEmail(email)
@@ -51,5 +54,17 @@ public class DashboardService {
         }
 
         return counts;
+    }
+
+    public StreakResponse getUserStreak(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+
+        Streak streak = streakService.getOrCreateStreak(user);
+        return StreakResponse.builder()
+                .currentStreak(streak.getCurrentStreak())
+                .longestStreak(streak.getLongestStreak())
+                .lastActiveDate(streak.getLastActiveDate())
+                .build();
     }
 }
