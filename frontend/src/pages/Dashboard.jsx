@@ -81,8 +81,9 @@ const Dashboard = () => {
         {error && <div className="error-banner">{error}</div>}
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
-            Loading dashboard analytics...
+          <div className="spinner-container">
+            <div className="spinner"></div>
+            <span>Loading dashboard analytics...</span>
           </div>
         ) : (
           <>

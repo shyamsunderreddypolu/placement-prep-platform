@@ -55,8 +55,9 @@ const Submissions = () => {
         {error && <div className="error-banner">{error}</div>}
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-            Loading practice logs...
+          <div className="spinner-container">
+            <div className="spinner"></div>
+            <span>Loading practice logs...</span>
           </div>
         ) : submissions.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '4rem 2rem', background: 'var(--bg-card)', borderRadius: '0.75rem' }}>
