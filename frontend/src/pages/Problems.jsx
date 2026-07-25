@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
+import LogSubmissionModal from '../components/LogSubmissionModal';
 import { getProblems } from '../services/problemService';
 import { Search, ExternalLink, Code } from 'lucide-react';
 
@@ -10,6 +11,7 @@ const Problems = () => {
   const [selectedTopic, setSelectedTopic] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedProblem, setSelectedProblem] = useState(null);
 
   const fetchProblems = async () => {
     setLoading(true);
@@ -135,12 +137,27 @@ const Problems = () => {
                   >
                     Solve Challenge <ExternalLink size={14} />
                   </a>
+                  <button
+                    className="btn-primary"
+                    style={{ width: 'auto', padding: '0.4rem 0.75rem', fontSize: '0.85rem' }}
+                    onClick={() => setSelectedProblem(problem)}
+                  >
+                    Log Solution
+                  </button>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {selectedProblem && (
+        <LogSubmissionModal
+          problem={selectedProblem}
+          onClose={() => setSelectedProblem(null)}
+          onSuccess={() => alert('Practice attempt logged successfully!')}
+        />
+      )}
     </>
   );
 };

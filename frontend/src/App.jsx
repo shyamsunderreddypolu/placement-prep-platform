@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Problems from './pages/Problems';
 import Dashboard from './pages/Dashboard';
+import Submissions from './pages/Submissions';
 
 function App() {
   return (
@@ -27,6 +28,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Problems />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/submissions"
+            element={
+              <ProtectedRoute>
+                <Submissions />
               </ProtectedRoute>
             }
           />
