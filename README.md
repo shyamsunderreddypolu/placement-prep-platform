@@ -39,25 +39,30 @@ A full-stack web application designed to help college students prepare for campu
 
 ---
 
-## 📂 Project Structure (Planned)
+## 📂 Project Structure
 
 ```text
 placement-prep-platform/
 │
-├── .github/workflows/          # GitHub Actions workflows
-│   └── maven.yml               # Automated test execution pipeline
-│
-├── frontend/                   # React frontend application
+├── frontend/                   # React Vite frontend application
+│   ├── src/
+│   │   ├── components/         # Reusable UI (Navbar, ProtectedRoute, LogSubmissionModal)
+│   │   ├── context/            # AuthContext global session state
+│   │   ├── pages/              # Login, Register, Problems, Dashboard, Submissions
+│   │   ├── services/           # API handlers (api.js, authService, problemService, submissionService)
+│   │   ├── App.jsx             # Routes definition
+│   │   └── index.css           # Custom CSS and design tokens
+│   └── package.json
 │
 └── src/                        # Spring Boot backend application
     ├── main/
     │   ├── java/com/shyamsunder/placement_prep_platform/
-    │   │   ├── config/         # Security configs, JWT, app filters
-    │   │   ├── controller/     # API Endpoints (Auth, DSA, Resume)
-    │   │   ├── dto/            # Data Transfer Objects
-    │   │   ├── entity/         # Database JPA Entities
-    │   │   ├── repository/     # Database CRUD Repositories
-    │   │   └── service/        # Core Business Logic Services
+    │   │   ├── config/         # Security configs, JWT, Global Exceptions
+    │   │   ├── controller/     # Controllers (Auth, Problems, Submissions, Dashboard)
+    │   │   ├── dto/            # Payloads & response objects
+    │   │   ├── entity/         # Database tables entities (User, Problem, Submission, Streak)
+    │   │   ├── repository/     # Data JPA Repositories
+    │   │   └── service/        # Core business service logic
     │   └── resources/
     │       └── application.properties
     └── test/                   # JUnit 5 & Mockito test suites
@@ -114,4 +119,18 @@ All secured endpoints require the `Authorization: Bearer <token>` header.
 3. Run the Spring Boot application:
    ```bash
    mvn spring-boot:run
+   ```
+
+### Running the Frontend
+1. Navigate to the `frontend` directory:
+   ```bash
+   cd frontend
+   ```
+2. Install npm dependencies:
+   ```bash
+   npm install
+   ```
+3. Run the Vite development server:
+   ```bash
+   npm run dev
    ```
