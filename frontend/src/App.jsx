@@ -7,6 +7,7 @@ import Register from './pages/Register';
 import Problems from './pages/Problems';
 import Dashboard from './pages/Dashboard';
 import Submissions from './pages/Submissions';
+import Resumes from './pages/Resumes';
 
 function App() {
   return (
@@ -36,6 +37,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Submissions />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/resumes"
+            element={
+              <ProtectedRoute>
+                <Resumes />
               </ProtectedRoute>
             }
           />
