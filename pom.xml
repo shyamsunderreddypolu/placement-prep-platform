@@ -102,6 +102,12 @@
 			<artifactId>s3</artifactId>
 			<version>2.25.15</version>
 		</dependency>
+		<!-- Apache PDFBox for PDF Resume Text Extraction -->
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox</artifactId>
+			<version>2.0.30</version>
+		</dependency>
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
