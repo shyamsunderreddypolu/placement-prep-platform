@@ -95,6 +95,11 @@ All secured endpoints require the `Authorization: Bearer <token>` header.
 * `GET /api/dashboard/difficulty` (Secured): Retrieves solved problem counts grouped by difficulty level (EASY, MEDIUM, HARD).
 * `GET /api/dashboard/topic` (Secured): Retrieves solved problem counts grouped by topic categories.
 
+### 📄 Resume Management & Storage
+* `POST /api/resumes/upload` (Secured): Uploads a student's resume file (`MultipartFile`). Uploads directly to AWS S3 if `aws.s3.enabled=true`, or falls back to local storage directory (`/uploads/`).
+* `GET /api/resumes` (Secured): Retrieves all resumes uploaded by the authenticated student in descending order.
+* `GET /uploads/{fileName}` (Public): Serves locally stored static resume documents when running in developer mode.
+
 ---
 
 ## 💻 Setup & Installation (Local Development)
