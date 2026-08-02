@@ -80,7 +80,8 @@ public class AtsScorerService {
         String fileUrl = resume.getFileUrl();
         if (fileUrl != null && fileUrl.startsWith("/uploads/")) {
             String fileName = fileUrl.substring("/uploads/".length());
-            Path path = Paths.get(uploadDir, fileName);
+            String targetDir = (uploadDir != null) ? uploadDir : "uploads";
+            Path path = Paths.get(targetDir, fileName);
             File file = path.toFile();
             if (file.exists() && fileName.toLowerCase().endsWith(".pdf")) {
                 try (PDDocument document = PDDocument.load(file)) {
