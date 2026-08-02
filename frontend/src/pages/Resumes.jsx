@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
+import AtsEvaluatorModal from '../components/AtsEvaluatorModal';
 import { uploadResume, getUserResumes } from '../services/resumeService';
-import { Upload, FileText, Calendar, ExternalLink, CheckCircle } from 'lucide-react';
+import { Upload, FileText, Calendar, ExternalLink, CheckCircle, Sparkles } from 'lucide-react';
 
 const Resumes = () => {
   const [resumes, setResumes] = useState([]);
@@ -10,6 +11,7 @@ const Resumes = () => {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [selectedResumeForAts, setSelectedResumeForAts] = useState(null);
 
   const fetchResumes = async () => {
     setLoading(true);
@@ -175,7 +177,7 @@ const Resumes = () => {
                   </div>
                 </div>
 
-                <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem', display: 'flex', justifyContent: 'flex-end' }}>
+                <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
                   <a
                     href={getFullFileUrl(resume.fileUrl)}
                     target="_blank"
@@ -185,12 +187,26 @@ const Resumes = () => {
                   >
                     View Document <ExternalLink size={14} />
                   </a>
+                  <button
+                    className="btn-primary"
+                    style={{ width: 'auto', padding: '0.4rem 0.75rem', fontSize: '0.8rem' }}
+                    onClick={() => setSelectedResumeForAts(resume)}
+                  >
+                    <Sparkles size={14} /> ATS Score
+                  </button>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {selectedResumeForAts && (
+        <AtsEvaluatorModal
+          resume={selectedResumeForAts}
+          onClose={() => setSelectedResumeForAts(null)}
+        />
+      )}
     </>
   );
 };
