@@ -100,6 +100,9 @@ All secured endpoints require the `Authorization: Bearer <token>` header.
 * `GET /api/resumes` (Secured): Retrieves all resumes uploaded by the authenticated student in descending order.
 * `GET /uploads/{fileName}` (Public): Serves locally stored static resume documents when running in developer mode.
 
+### 🤖 AI ATS Resume Scorer
+* `POST /api/ats/analyze` (Secured): Evaluates a student's uploaded PDF resume against target job description keywords using Apache PDFBox text extraction. Returns an ATS match score percentage ($0-100\%$), matched skills list, missing keywords, and actionable recommendations.
+
 ---
 
 ## 💻 Setup & Installation (Local Development)
