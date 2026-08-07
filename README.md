@@ -142,3 +142,12 @@ All secured endpoints require the `Authorization: Bearer <token>` header.
    ```bash
    npm run dev
    ```
+
+### 🐳 Single-Command Docker Deployment (Production Multi-Container Setup)
+Deploy the full-stack application (MySQL 8.0 DB + Spring Boot 3 Backend + React Vite Nginx Frontend) with a single command:
+```bash
+docker-compose up --build
+```
+* **Frontend UI**: `http://localhost` (Served via Nginx reverse proxy)
+* **Backend REST API**: `http://localhost:8080/api` (Spring Boot microservice container)
+* **Database**: MySQL 8.0 container running on port `3306` with persistent volume storage
