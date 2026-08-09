@@ -18,5 +18,6 @@ public class ProblemResponse {
     private Difficulty difficulty;
     private String topic;
     private String link;
+    private String pattern;
     private LocalDateTime createdAt;
 }

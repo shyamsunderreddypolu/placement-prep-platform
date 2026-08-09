@@ -25,4 +25,6 @@ public class ProblemRequest {
 
     @NotBlank(message = "Link is required")
     private String link;
+
+    private String pattern;
 }

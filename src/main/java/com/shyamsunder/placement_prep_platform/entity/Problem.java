@@ -30,6 +30,8 @@ public class Problem {
     @Column(nullable = false)
     private String link;
 
+    private String pattern;
+
     @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "DATETIME")
     private LocalDateTime createdAt;
 

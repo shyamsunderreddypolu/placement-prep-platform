@@ -23,6 +23,7 @@ public class ProblemService {
                 .difficulty(request.getDifficulty())
                 .topic(request.getTopic())
                 .link(request.getLink())
+                .pattern(request.getPattern())
                 .build();
 
         Problem savedProblem = problemRepository.save(problem);
@@ -60,6 +61,7 @@ public class ProblemService {
                 .difficulty(problem.getDifficulty())
                 .topic(problem.getTopic())
                 .link(problem.getLink())
+                .pattern(problem.getPattern())
                 .createdAt(problem.getCreatedAt())
                 .build();
     }
