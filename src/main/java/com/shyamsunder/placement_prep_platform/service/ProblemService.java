@@ -38,13 +38,25 @@ public class ProblemService {
     }
 
     public List<ProblemResponse> getProblems(String topic, Difficulty difficulty) {
+        return getProblems(topic, difficulty, null);
+    }
+
+    public List<ProblemResponse> getProblems(String topic, Difficulty difficulty, String pattern) {
         List<Problem> problems;
-        if (topic != null && difficulty != null) {
+        if (topic != null && difficulty != null && pattern != null) {
+            problems = problemRepository.findByTopicAndDifficultyAndPattern(topic, difficulty, pattern);
+        } else if (topic != null && difficulty != null) {
             problems = problemRepository.findByTopicAndDifficulty(topic, difficulty);
+        } else if (topic != null && pattern != null) {
+            problems = problemRepository.findByTopicAndPattern(topic, pattern);
+        } else if (difficulty != null && pattern != null) {
+            problems = problemRepository.findByDifficultyAndPattern(difficulty, pattern);
         } else if (topic != null) {
             problems = problemRepository.findByTopic(topic);
         } else if (difficulty != null) {
             problems = problemRepository.findByDifficulty(difficulty);
+        } else if (pattern != null) {
+            problems = problemRepository.findByPattern(pattern);
         } else {
             problems = problemRepository.findAll();
         }
@@ -52,6 +64,10 @@ public class ProblemService {
         return problems.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+    }
+
+    public List<String> getDistinctPatterns() {
+        return problemRepository.findAllDistinctPatterns();
     }
 
     private ProblemResponse mapToResponse(Problem problem) {
