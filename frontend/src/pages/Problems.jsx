@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import LogSubmissionModal from '../components/LogSubmissionModal';
-import { getProblems } from '../services/problemService';
-import { Search, ExternalLink, Code } from 'lucide-react';
+import { getProblems, getDistinctPatterns } from '../services/problemService';
+import { Search, ExternalLink, Code, Layers } from 'lucide-react';
 
 const Problems = () => {
   const [problems, setProblems] = useState([]);
+  const [patterns, setPatterns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedTopic, setSelectedTopic] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState('');
+  const [selectedPattern, setSelectedPattern] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProblem, setSelectedProblem] = useState(null);
 
@@ -17,7 +19,7 @@ const Problems = () => {
     setLoading(true);
     setError('');
     try {
-      const data = await getProblems(selectedTopic, selectedDifficulty);
+      const data = await getProblems(selectedTopic, selectedDifficulty, selectedPattern);
       setProblems(data);
     } catch (err) {
       setError('Failed to load problems. Please check your backend connection.');
@@ -26,9 +28,22 @@ const Problems = () => {
     }
   };
 
+  const fetchPatternsList = async () => {
+    try {
+      const patternData = await getDistinctPatterns();
+      setPatterns(patternData || []);
+    } catch (err) {
+      console.warn('Could not load distinct patterns list', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchPatternsList();
+  }, []);
+
   useEffect(() => {
     fetchProblems();
-  }, [selectedTopic, selectedDifficulty]);
+  }, [selectedTopic, selectedDifficulty, selectedPattern]);
 
   const filteredProblems = problems.filter((problem) =>
     problem.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -54,7 +69,7 @@ const Problems = () => {
         <div className="page-header">
           <div>
             <h1 className="page-title">DSA Problem Repository</h1>
-            <p className="page-subtitle">Browse, filter, and solve curated coding questions for placements</p>
+            <p className="page-subtitle">Browse, filter by pattern, and solve curated coding questions for placements</p>
           </div>
         </div>
 
@@ -80,10 +95,27 @@ const Problems = () => {
               <option value="">All Topics</option>
               <option value="Arrays">Arrays</option>
               <option value="Strings">Strings</option>
+              <option value="Linked List">Linked List</option>
               <option value="Trees">Trees</option>
               <option value="Graphs">Graphs</option>
               <option value="Dynamic Programming">Dynamic Programming</option>
-              <option value="LinkedList">LinkedList</option>
+              <option value="Stack">Stack</option>
+              <option value="Binary Search">Binary Search</option>
+              <option value="Heap">Heap</option>
+              <option value="Backtracking">Backtracking</option>
+            </select>
+
+            <select
+              className="filter-select"
+              value={selectedPattern}
+              onChange={(e) => setSelectedPattern(e.target.value)}
+            >
+              <option value="">All Patterns</option>
+              {patterns.map((pat) => (
+                <option key={pat} value={pat}>
+                  {pat}
+                </option>
+              ))}
             </select>
 
             <div className="difficulty-tabs">
@@ -126,7 +158,15 @@ const Problems = () => {
                       {problem.difficulty}
                     </span>
                   </div>
-                  <span className="topic-tag">{problem.topic}</span>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.5rem', marginBottom: '0.75rem' }}>
+                    <span className="topic-tag">{problem.topic}</span>
+                    {problem.pattern && (
+                      <span className="pattern-pill">
+                        <Layers size={11} style={{ marginRight: '3px' }} />
+                        {problem.pattern}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="problem-card-footer">
