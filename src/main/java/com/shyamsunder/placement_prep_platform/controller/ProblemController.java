@@ -40,8 +40,14 @@ public class ProblemController {
     @GetMapping
     public ResponseEntity<List<ProblemResponse>> getProblems(
             @RequestParam(required = false) String topic,
-            @RequestParam(required = false) Difficulty difficulty
+            @RequestParam(required = false) Difficulty difficulty,
+            @RequestParam(required = false) String pattern
     ) {
-        return ResponseEntity.ok(problemService.getProblems(topic, difficulty));
+        return ResponseEntity.ok(problemService.getProblems(topic, difficulty, pattern));
+    }
+
+    @GetMapping("/patterns")
+    public ResponseEntity<List<String>> getPatterns() {
+        return ResponseEntity.ok(problemService.getDistinctPatterns());
     }
 }
