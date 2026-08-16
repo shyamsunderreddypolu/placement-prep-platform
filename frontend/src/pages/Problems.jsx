@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
+import PatternSummaryHeader from '../components/PatternSummaryHeader';
 import LogSubmissionModal from '../components/LogSubmissionModal';
 import { getProblems, getDistinctPatterns } from '../services/problemService';
 import { Search, ExternalLink, Code, Layers } from 'lucide-react';
@@ -72,6 +73,8 @@ const Problems = () => {
             <p className="page-subtitle">Browse, filter by pattern, and solve curated coding questions for placements</p>
           </div>
         </div>
+
+        <PatternSummaryHeader selectedPattern={selectedPattern} onSelectPattern={setSelectedPattern} />
 
         {/* Filters & Search Bar */}
         <div className="filters-bar">
