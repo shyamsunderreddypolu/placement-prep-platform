@@ -3,7 +3,8 @@ import Navbar from '../components/Navbar';
 import PatternSummaryHeader from '../components/PatternSummaryHeader';
 import LogSubmissionModal from '../components/LogSubmissionModal';
 import { getProblems, getDistinctPatterns } from '../services/problemService';
-import { Search, ExternalLink, Code, Layers } from 'lucide-react';
+import { Search, ExternalLink, Code, Layers, PlayCircle } from 'lucide-react';
+import ArrayVisualizerModal from '../components/ArrayVisualizerModal';
 
 const Problems = () => {
   const [problems, setProblems] = useState([]);
@@ -15,6 +16,7 @@ const Problems = () => {
   const [selectedPattern, setSelectedPattern] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProblem, setSelectedProblem] = useState(null);
+  const [visualizingProblem, setVisualizingProblem] = useState(null);
 
   const fetchProblems = async () => {
     setLoading(true);
@@ -182,6 +184,13 @@ const Problems = () => {
                     Solve Challenge <ExternalLink size={14} />
                   </a>
                   <button
+                    className="btn-secondary"
+                    style={{ width: 'auto', padding: '0.4rem 0.75rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.3rem', background: '#334155', color: '#fff', border: 'none', borderRadius: '0.5rem', cursor: 'pointer' }}
+                    onClick={() => setVisualizingProblem(problem)}
+                  >
+                    <PlayCircle size={14} /> Stepper
+                  </button>
+                  <button
                     className="btn-primary"
                     style={{ width: 'auto', padding: '0.4rem 0.75rem', fontSize: '0.85rem' }}
                     onClick={() => setSelectedProblem(problem)}
@@ -200,6 +209,13 @@ const Problems = () => {
           problem={selectedProblem}
           onClose={() => setSelectedProblem(null)}
           onSuccess={() => alert('Practice attempt logged successfully!')}
+        />
+      )}
+
+      {visualizingProblem && (
+        <ArrayVisualizerModal
+          problem={visualizingProblem}
+          onClose={() => setVisualizingProblem(null)}
         />
       )}
     </>
