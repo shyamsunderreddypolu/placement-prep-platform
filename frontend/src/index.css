@@ -765,3 +765,134 @@ a:hover {
   border-radius: 0.4rem;
   outline: none;
 }
+
+/* Stack Visualizer Display Styling */
+.stack-display-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background: #0f172a;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-color);
+  min-height: 160px;
+}
+
+.stack-tower {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 140px;
+  min-height: 120px;
+  justify-content: flex-end;
+  border-bottom: 3px solid #6366f1;
+  border-left: 3px solid #334155;
+  border-right: 3px solid #334155;
+  padding: 0.5rem;
+  border-radius: 0 0 0.5rem 0.5rem;
+}
+
+.stack-block {
+  background: #1e293b;
+  border: 1px solid #6366f1;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 0.4rem;
+  border-radius: 0.4rem;
+  position: relative;
+  animation: fadeIn 0.3s ease;
+}
+
+.top-badge {
+  position: absolute;
+  right: -45px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #f43f5e;
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.stack-empty-label {
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: auto;
+}
+
+.op-badge-container {
+  display: flex;
+  align-items: center;
+}
+
+.op-badge {
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 0.4rem 0.85rem;
+  border-radius: 9999px;
+}
+
+.op-badge.push {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.op-badge.pop {
+  background: rgba(244, 63, 94, 0.2);
+  color: #fb7185;
+  border: 1px solid rgba(244, 63, 94, 0.4);
+}
+
+/* Tree Visualizer Display Styling */
+.tree-display-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  align-items: center;
+  justify-content: center;
+  background: #0f172a;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-color);
+  min-height: 180px;
+}
+
+.tree-level {
+  display: flex;
+  gap: 2.5rem;
+  justify-content: center;
+}
+
+.tree-node {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #1e293b;
+  border: 2px solid #334155;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+.tree-node.active {
+  background: #10b981;
+  border-color: #34d399;
+  transform: scale(1.15);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
+}
+
+.tree-node.visited {
+  background: #6366f1;
+  border-color: #818cf8;
+}

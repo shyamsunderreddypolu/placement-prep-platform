@@ -5,6 +5,8 @@ import LogSubmissionModal from '../components/LogSubmissionModal';
 import { getProblems, getDistinctPatterns } from '../services/problemService';
 import { Search, ExternalLink, Code, Layers, PlayCircle } from 'lucide-react';
 import ArrayVisualizerModal from '../components/ArrayVisualizerModal';
+import StackVisualizerModal from '../components/StackVisualizerModal';
+import TreeVisualizerModal from '../components/TreeVisualizerModal';
 
 const Problems = () => {
   const [problems, setProblems] = useState([]);
@@ -212,7 +214,21 @@ const Problems = () => {
         />
       )}
 
-      {visualizingProblem && (
+      {visualizingProblem && visualizingProblem.topic === 'Stack' && (
+        <StackVisualizerModal
+          problem={visualizingProblem}
+          onClose={() => setVisualizingProblem(null)}
+        />
+      )}
+
+      {visualizingProblem && visualizingProblem.topic === 'Trees' && (
+        <TreeVisualizerModal
+          problem={visualizingProblem}
+          onClose={() => setVisualizingProblem(null)}
+        />
+      )}
+
+      {visualizingProblem && visualizingProblem.topic !== 'Stack' && visualizingProblem.topic !== 'Trees' && (
         <ArrayVisualizerModal
           problem={visualizingProblem}
           onClose={() => setVisualizingProblem(null)}
