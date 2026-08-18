@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -8,6 +8,7 @@ import Problems from './pages/Problems';
 import Dashboard from './pages/Dashboard';
 import Submissions from './pages/Submissions';
 import Resumes from './pages/Resumes';
+import CoreCsFlashcards from './pages/CoreCsFlashcards';
 
 function App() {
   return (
@@ -17,7 +18,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route
-            path="/dashboard"
+            path="/"
             element={
               <ProtectedRoute>
                 <Dashboard />
@@ -48,7 +49,15 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route
+            path="/flashcards"
+            element={
+              <ProtectedRoute>
+                <CoreCsFlashcards />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
     </AuthProvider>
