@@ -8,9 +8,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -21,18 +21,8 @@ public class ProblemController {
     private final ProblemService problemService;
 
     @PostMapping
-    public ResponseEntity<?> addProblem(
-            @Valid @RequestBody ProblemRequest request,
-            Principal principal
-    ) {
-        String email = principal.getName();
-
-        // Simple domain and default check for administrator privileges
-        if (!email.endsWith("@placementprep.com") && !email.equalsIgnoreCase("admin@gmail.com")) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("Access denied: only administrators can add problems.");
-        }
-
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProblemResponse> addProblem(@Valid @RequestBody ProblemRequest request) {
         ProblemResponse response = problemService.addProblem(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
