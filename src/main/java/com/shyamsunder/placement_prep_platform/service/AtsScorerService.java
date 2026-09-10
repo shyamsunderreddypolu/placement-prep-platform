@@ -4,6 +4,8 @@ import com.shyamsunder.placement_prep_platform.dto.AtsAnalysisRequest;
 import com.shyamsunder.placement_prep_platform.dto.AtsAnalysisResponse;
 import com.shyamsunder.placement_prep_platform.entity.Resume;
 import com.shyamsunder.placement_prep_platform.entity.User;
+import com.shyamsunder.placement_prep_platform.exception.ForbiddenException;
+import com.shyamsunder.placement_prep_platform.exception.ResourceNotFoundException;
 import com.shyamsunder.placement_prep_platform.repository.ResumeRepository;
 import com.shyamsunder.placement_prep_platform.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -39,13 +41,13 @@ public class AtsScorerService {
     public AtsAnalysisResponse analyzeResume(AtsAnalysisRequest request) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found: " + userEmail));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userEmail));
 
         Resume resume = resumeRepository.findById(request.getResumeId())
-                .orElseThrow(() -> new RuntimeException("Resume not found with ID: " + request.getResumeId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Resume not found with ID: " + request.getResumeId()));
 
         if (!resume.getUser().getId().equals(user.getId())) {
-            throw new IllegalArgumentException("Unauthorized access to resume");
+            throw new ForbiddenException("Unauthorized access to resume");
         }
 
         String extractedText = extractTextFromResume(resume);

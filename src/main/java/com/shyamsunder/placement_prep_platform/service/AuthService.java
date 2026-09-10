@@ -8,6 +8,9 @@ import com.shyamsunder.placement_prep_platform.dto.TokenRefreshRequest;
 import com.shyamsunder.placement_prep_platform.entity.RefreshToken;
 import com.shyamsunder.placement_prep_platform.entity.Role;
 import com.shyamsunder.placement_prep_platform.entity.User;
+import com.shyamsunder.placement_prep_platform.exception.BadRequestException;
+import com.shyamsunder.placement_prep_platform.exception.DuplicateResourceException;
+import com.shyamsunder.placement_prep_platform.exception.UnauthorizedException;
 import com.shyamsunder.placement_prep_platform.repository.RefreshTokenRepository;
 import com.shyamsunder.placement_prep_platform.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +36,7 @@ public class AuthService {
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("Email is already registered!");
+            throw new DuplicateResourceException("Email is already registered!");
         }
 
         User user = User.builder()
@@ -68,7 +71,7 @@ public class AuthService {
         );
 
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password."));
+                .orElseThrow(() -> new UnauthorizedException("Invalid email or password."));
 
         String jwtToken = jwtService.generateToken(user);
         RefreshToken refreshToken = createRefreshToken(user);
@@ -85,11 +88,11 @@ public class AuthService {
     @Transactional
     public AuthResponse refreshToken(TokenRefreshRequest request) {
         RefreshToken refreshToken = refreshTokenRepository.findByToken(request.getRefreshToken())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid refresh token"));
+                .orElseThrow(() -> new BadRequestException("Invalid refresh token"));
 
         if (refreshToken.isRevoked() || refreshToken.getExpiryDate().isBefore(Instant.now())) {
             refreshTokenRepository.delete(refreshToken);
-            throw new IllegalArgumentException("Refresh token was expired or revoked. Please log in again.");
+            throw new UnauthorizedException("Refresh token was expired or revoked. Please log in again.");
         }
 
         User user = refreshToken.getUser();

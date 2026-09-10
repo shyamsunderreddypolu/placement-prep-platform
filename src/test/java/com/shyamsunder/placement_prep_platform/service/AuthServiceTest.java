@@ -8,6 +8,8 @@ import com.shyamsunder.placement_prep_platform.dto.TokenRefreshRequest;
 import com.shyamsunder.placement_prep_platform.entity.RefreshToken;
 import com.shyamsunder.placement_prep_platform.entity.Role;
 import com.shyamsunder.placement_prep_platform.entity.User;
+import com.shyamsunder.placement_prep_platform.exception.DuplicateResourceException;
+import com.shyamsunder.placement_prep_platform.exception.UnauthorizedException;
 import com.shyamsunder.placement_prep_platform.repository.RefreshTokenRepository;
 import com.shyamsunder.placement_prep_platform.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -92,11 +94,11 @@ class AuthServiceTest {
     }
 
     @Test
-    void register_duplicateEmail_throwsIllegalArgumentException() {
+    void register_duplicateEmail_throwsDuplicateResourceException() {
         User existing = User.builder().id(1L).email("student@test.com").build();
         when(userRepository.findByEmail("student@test.com")).thenReturn(Optional.of(existing));
 
-        assertThrows(IllegalArgumentException.class, () -> authService.register(registerRequest));
+        assertThrows(DuplicateResourceException.class, () -> authService.register(registerRequest));
         verify(userRepository, never()).save(any(User.class));
     }
 

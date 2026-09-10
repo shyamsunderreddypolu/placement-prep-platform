@@ -6,6 +6,7 @@ import com.shyamsunder.placement_prep_platform.entity.Problem;
 import com.shyamsunder.placement_prep_platform.entity.Submission;
 import com.shyamsunder.placement_prep_platform.entity.SubmissionStatus;
 import com.shyamsunder.placement_prep_platform.entity.User;
+import com.shyamsunder.placement_prep_platform.exception.ResourceNotFoundException;
 import com.shyamsunder.placement_prep_platform.repository.ProblemRepository;
 import com.shyamsunder.placement_prep_platform.repository.SubmissionRepository;
 import com.shyamsunder.placement_prep_platform.repository.UserRepository;
@@ -28,10 +29,10 @@ public class SubmissionService {
     @Transactional
     public SubmissionResponse logSubmission(SubmissionRequest request, String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
 
         Problem problem = problemRepository.findById(request.getProblemId())
-                .orElseThrow(() -> new IllegalArgumentException("Problem not found with ID: " + request.getProblemId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Problem not found with ID: " + request.getProblemId()));
 
         Submission submission = Submission.builder()
                 .user(user)
@@ -52,7 +53,7 @@ public class SubmissionService {
 
     public List<SubmissionResponse> getSubmissionHistory(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
 
         return submissionRepository.findByUserIdOrderBySubmittedAtDesc(user.getId())
                 .stream()
