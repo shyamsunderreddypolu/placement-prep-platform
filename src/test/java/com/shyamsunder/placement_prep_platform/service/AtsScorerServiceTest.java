@@ -54,7 +54,7 @@ class AtsScorerServiceTest {
         resume = Resume.builder()
                 .id(10L)
                 .user(user)
-                .fileName("Student_Resume.pdf")
+                .fileName("Student_Resume_Java_SpringBoot_SQL.pdf")
                 .fileUrl("uuid-123.pdf")
                 .build();
     }
@@ -79,7 +79,7 @@ class AtsScorerServiceTest {
     }
 
     @Test
-    void analyzeResume_validOwnership_returnsAnalysisResponse() {
+    void analyzeResume_validOwnership_returnsAnalysisResponseWithBreakdown() {
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getName()).thenReturn("student@test.com");
         SecurityContextHolder.setContext(securityContext);
@@ -97,28 +97,69 @@ class AtsScorerServiceTest {
         assertNotNull(response);
         assertEquals(10L, response.getResumeId());
         assertTrue(response.getScore() >= 0);
+        assertNotNull(response.getScoreBreakdown());
+        assertTrue(response.getScoreBreakdown().containsKey("keywordMatch"));
+        assertTrue(response.getScoreBreakdown().containsKey("technicalBreadth"));
+        assertTrue(response.getScoreBreakdown().containsKey("experience"));
+        assertTrue(response.getScoreBreakdown().containsKey("education"));
+        assertTrue(response.getScoreBreakdown().containsKey("projects"));
     }
 
     @Test
     void analyzeResume_zeroMatches_returnsZeroScoreWithoutArtificialMinimum() {
+        Resume emptyResume = Resume.builder()
+                .id(20L)
+                .user(user)
+                .fileName("")
+                .fileUrl("empty.pdf")
+                .build();
+
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getName()).thenReturn("student@test.com");
         SecurityContextHolder.setContext(securityContext);
 
         when(userRepository.findByEmail("student@test.com")).thenReturn(Optional.of(user));
-        when(resumeRepository.findById(10L)).thenReturn(Optional.of(resume));
+        when(resumeRepository.findById(20L)).thenReturn(Optional.of(emptyResume));
 
         AtsAnalysisRequest request = AtsAnalysisRequest.builder()
-                .resumeId(10L)
-                .jobDescription("Kubernetes, Rust, Flutter, Swift")
+                .resumeId(20L)
+                .jobDescription("Rust, Flutter, Swift, Dart")
                 .build();
 
         AtsAnalysisResponse response = atsScorerService.analyzeResume(request);
 
         assertNotNull(response);
-        // Score must NOT be inflated to 35% or have manufactured skills
         assertEquals(0, response.getScore());
         assertTrue(response.getMatchedSkills().isEmpty());
         assertFalse(response.getMissingSkills().isEmpty());
+    }
+
+    @Test
+    void analyzeResume_synonymNormalization_matchesVariants() {
+        Resume synonymResume = Resume.builder()
+                .id(30L)
+                .user(user)
+                .fileName("John_Doe_springboot_js_k8s.pdf")
+                .fileUrl("synonym.pdf")
+                .build();
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn("student@test.com");
+        SecurityContextHolder.setContext(securityContext);
+
+        when(userRepository.findByEmail("student@test.com")).thenReturn(Optional.of(user));
+        when(resumeRepository.findById(30L)).thenReturn(Optional.of(synonymResume));
+
+        AtsAnalysisRequest request = AtsAnalysisRequest.builder()
+                .resumeId(30L)
+                .jobDescription("Spring Boot, JavaScript, Kubernetes")
+                .build();
+
+        AtsAnalysisResponse response = atsScorerService.analyzeResume(request);
+
+        assertNotNull(response);
+        assertTrue(response.getMatchedSkills().contains("Spring Boot"));
+        assertTrue(response.getMatchedSkills().contains("JavaScript"));
+        assertTrue(response.getMatchedSkills().contains("Kubernetes"));
     }
 }
