@@ -98,4 +98,27 @@ class AtsScorerServiceTest {
         assertEquals(10L, response.getResumeId());
         assertTrue(response.getScore() >= 0);
     }
+
+    @Test
+    void analyzeResume_zeroMatches_returnsZeroScoreWithoutArtificialMinimum() {
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn("student@test.com");
+        SecurityContextHolder.setContext(securityContext);
+
+        when(userRepository.findByEmail("student@test.com")).thenReturn(Optional.of(user));
+        when(resumeRepository.findById(10L)).thenReturn(Optional.of(resume));
+
+        AtsAnalysisRequest request = AtsAnalysisRequest.builder()
+                .resumeId(10L)
+                .jobDescription("Kubernetes, Rust, Flutter, Swift")
+                .build();
+
+        AtsAnalysisResponse response = atsScorerService.analyzeResume(request);
+
+        assertNotNull(response);
+        // Score must NOT be inflated to 35% or have manufactured skills
+        assertEquals(0, response.getScore());
+        assertTrue(response.getMatchedSkills().isEmpty());
+        assertFalse(response.getMissingSkills().isEmpty());
+    }
 }

@@ -9,6 +9,7 @@ import com.shyamsunder.placement_prep_platform.exception.ResourceNotFoundExcepti
 import com.shyamsunder.placement_prep_platform.repository.ResumeRepository;
 import com.shyamsunder.placement_prep_platform.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,9 +22,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AtsScorerService {
 
     private final ResumeRepository resumeRepository;
@@ -51,7 +54,7 @@ public class AtsScorerService {
         }
 
         String extractedText = extractTextFromResume(resume);
-        String combinedContent = (extractedText + " " + resume.getFileName()).toLowerCase();
+        String combinedContent = (extractedText + " " + (resume.getFileName() != null ? resume.getFileName() : "")).toLowerCase();
 
         List<String> targetSkills = parseTargetSkills(request.getJobDescription());
         List<String> matchedSkills = new ArrayList<>();
@@ -59,35 +62,19 @@ public class AtsScorerService {
 
         for (String skill : targetSkills) {
             String lowerSkill = skill.toLowerCase().trim();
-            if (combinedContent.contains(lowerSkill)) {
+            if (matchesKeyword(combinedContent, lowerSkill)) {
                 matchedSkills.add(skill);
             } else {
                 missingSkills.add(skill);
             }
         }
 
-        // Fallback Heuristic: If PDF contains image/scanned stream or minimal text, match against fileName keywords & core skills
-        if (matchedSkills.isEmpty() && !targetSkills.isEmpty()) {
-            for (String skill : targetSkills) {
-                String lowerSkill = skill.toLowerCase().trim();
-                // Check if target skill appears in filename or basic heuristics
-                if (resume.getFileName().toLowerCase().contains(lowerSkill) || lowerSkill.equalsIgnoreCase("java") || lowerSkill.equalsIgnoreCase("sql") || lowerSkill.equalsIgnoreCase("react")) {
-                    matchedSkills.add(skill);
-                }
-            }
-            // If still empty, grant minimum baseline placement match based on uploaded resume document validity
-            if (matchedSkills.isEmpty() && targetSkills.size() > 0) {
-                int sampleCount = Math.max(1, (int) Math.ceil(targetSkills.size() * 0.6));
-                for (int i = 0; i < Math.min(sampleCount, targetSkills.size()); i++) {
-                    matchedSkills.add(targetSkills.get(i));
-                }
-            }
-            missingSkills = new ArrayList<>(targetSkills);
-            missingSkills.removeAll(matchedSkills);
+        // True calculated score without artificial manufacturing or min 35 cap
+        int score = 0;
+        if (!targetSkills.isEmpty()) {
+            score = (int) Math.round(((double) matchedSkills.size() / targetSkills.size()) * 100);
+            score = Math.min(100, Math.max(0, score));
         }
-
-        int score = targetSkills.isEmpty() ? 0 : (int) Math.round(((double) matchedSkills.size() / targetSkills.size()) * 100);
-        score = Math.min(100, Math.max(score, 35)); // Ensure valid placement score range
 
         List<String> recommendations = generateRecommendations(missingSkills, score);
 
@@ -101,6 +88,15 @@ public class AtsScorerService {
                 .build();
     }
 
+    private boolean matchesKeyword(String content, String keyword) {
+        if (content == null || keyword == null || keyword.isEmpty()) {
+            return false;
+        }
+        // Use non-alphanumeric boundary checks to avoid false positives (e.g. 'c' matching in 'docker')
+        String regex = "(?<![a-zA-Z0-9])" + Pattern.quote(keyword) + "(?![a-zA-Z0-9])";
+        return Pattern.compile(regex, Pattern.CASE_INSENSITIVE).matcher(content).find();
+    }
+
     private String extractTextFromResume(Resume resume) {
         String fileUrl = resume.getFileUrl();
         if (fileUrl == null) return "";
@@ -110,7 +106,6 @@ public class AtsScorerService {
             fileName = fileUrl.substring("/uploads/".length());
         }
 
-        // Try multiple directory resolution strategies
         List<Path> candidatePaths = List.of(
                 Paths.get(uploadDir != null ? uploadDir : "uploads", fileName),
                 Paths.get("./uploads", fileName),
@@ -132,12 +127,14 @@ public class AtsScorerService {
                     PDFTextStripper stripper = new PDFTextStripper();
                     return stripper.getText(document);
                 } catch (IOException e) {
+                    log.warn("Failed to extract text from PDF resume: {}", e.getMessage());
                     return "";
                 }
             } else if (lowerName.endsWith(".txt") || lowerName.endsWith(".doc") || lowerName.endsWith(".docx")) {
                 try {
                     return Files.readString(file.toPath());
                 } catch (IOException e) {
+                    log.warn("Failed to extract text from document: {}", e.getMessage());
                     return "";
                 }
             }
@@ -154,14 +151,12 @@ public class AtsScorerService {
         Set<String> skills = new LinkedHashSet<>();
         String lowerJd = jobDescription.toLowerCase();
 
-        // 1. Match standard technical placement keywords
         for (String skill : COMMON_PLACEMENT_SKILLS) {
-            if (lowerJd.contains(skill)) {
+            if (matchesKeyword(lowerJd, skill.toLowerCase())) {
                 skills.add(skill);
             }
         }
 
-        // 2. Tokenize custom user skill inputs (comma/newline separated)
         String[] tokens = jobDescription.split("[,\\n;]+");
         for (String token : tokens) {
             String trimmed = token.trim();
@@ -176,10 +171,10 @@ public class AtsScorerService {
     private List<String> generateRecommendations(List<String> missingSkills, int score) {
         List<String> recs = new ArrayList<>();
 
-        if (score < 50) {
-            recs.add("High Priority: Resume is missing several core placement skills. Update experience bullet points.");
-        } else if (score < 80) {
-            recs.add("Moderate Match: Consider adding projects demonstrating missing technologies.");
+        if (score < 40) {
+            recs.add("Low Match: Resume is missing essential skills specified in the target job description.");
+        } else if (score < 75) {
+            recs.add("Moderate Match: Consider adding projects or coursework demonstrating missing technologies.");
         } else {
             recs.add("Strong Match: Resume aligns well with target placement requirements.");
         }
