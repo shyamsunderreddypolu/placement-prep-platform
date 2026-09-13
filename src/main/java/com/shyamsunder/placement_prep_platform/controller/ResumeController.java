@@ -1,10 +1,14 @@
-package com.shyamsunder.placement_prep_platform.controller;
+﻿package com.shyamsunder.placement_prep_platform.controller;
 
 import com.shyamsunder.placement_prep_platform.dto.ResumeResponse;
 import com.shyamsunder.placement_prep_platform.entity.Resume;
 import com.shyamsunder.placement_prep_platform.service.ResumeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +31,16 @@ public class ResumeController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ResumeResponse>> getUserResumes() {
+    public ResponseEntity<?> getUserResumes(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
+    ) {
+        if (page != null) {
+            int pageSize = (size != null && size > 0) ? size : 20;
+            Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "uploadedAt"));
+            Page<ResumeResponse> pagedResult = resumeService.getPagedUserResumes(pageable);
+            return ResponseEntity.ok(pagedResult);
+        }
         List<ResumeResponse> responses = resumeService.getUserResumes();
         return ResponseEntity.ok(responses);
     }

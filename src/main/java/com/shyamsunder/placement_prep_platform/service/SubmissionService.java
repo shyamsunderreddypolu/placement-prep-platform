@@ -1,4 +1,4 @@
-package com.shyamsunder.placement_prep_platform.service;
+﻿package com.shyamsunder.placement_prep_platform.service;
 
 import com.shyamsunder.placement_prep_platform.dto.SubmissionRequest;
 import com.shyamsunder.placement_prep_platform.dto.SubmissionResponse;
@@ -11,6 +11,8 @@ import com.shyamsunder.placement_prep_platform.repository.ProblemRepository;
 import com.shyamsunder.placement_prep_platform.repository.SubmissionRepository;
 import com.shyamsunder.placement_prep_platform.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,6 +61,14 @@ public class SubmissionService {
                 .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+    }
+
+    public Page<SubmissionResponse> getPagedSubmissionHistory(String email, Pageable pageable) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+
+        return submissionRepository.findByUserIdOrderBySubmittedAtDesc(user.getId(), pageable)
+                .map(this::mapToResponse);
     }
 
     private SubmissionResponse mapToResponse(Submission submission) {

@@ -1,4 +1,4 @@
-package com.shyamsunder.placement_prep_platform.service;
+﻿package com.shyamsunder.placement_prep_platform.service;
 
 import com.shyamsunder.placement_prep_platform.dto.ResumeResponse;
 import com.shyamsunder.placement_prep_platform.entity.Resume;
@@ -10,6 +10,8 @@ import com.shyamsunder.placement_prep_platform.repository.ResumeRepository;
 import com.shyamsunder.placement_prep_platform.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -65,6 +67,20 @@ public class ResumeService {
                         .uploadedAt(resume.getUploadedAt())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    public Page<ResumeResponse> getPagedUserResumes(Pageable pageable) {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userEmail));
+
+        return resumeRepository.findByUserIdOrderByUploadedAtDesc(user.getId(), pageable)
+                .map(resume -> ResumeResponse.builder()
+                        .id(resume.getId())
+                        .fileName(resume.getFileName())
+                        .fileUrl(resume.getFileUrl())
+                        .uploadedAt(resume.getUploadedAt())
+                        .build());
     }
 
     public Resume getResumeByIdWithOwnershipCheck(Long resumeId) {

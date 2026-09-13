@@ -6,7 +6,10 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "problems")
+@Table(name = "problems", indexes = {
+    @Index(name = "idx_problem_topic", columnList = "topic"),
+    @Index(name = "idx_problem_difficulty", columnList = "difficulty")
+})
 @Data
 @Builder
 @NoArgsConstructor

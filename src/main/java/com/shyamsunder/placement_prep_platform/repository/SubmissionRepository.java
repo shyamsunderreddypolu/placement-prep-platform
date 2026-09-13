@@ -1,8 +1,10 @@
-package com.shyamsunder.placement_prep_platform.repository;
+﻿package com.shyamsunder.placement_prep_platform.repository;
 
 import com.shyamsunder.placement_prep_platform.entity.Difficulty;
 import com.shyamsunder.placement_prep_platform.entity.Submission;
 import com.shyamsunder.placement_prep_platform.entity.SubmissionStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,6 +17,7 @@ import java.util.List;
 public interface SubmissionRepository extends JpaRepository<Submission, Long> {
     List<Submission> findByUserId(Long userId);
     List<Submission> findByUserIdOrderBySubmittedAtDesc(Long userId);
+    Page<Submission> findByUserIdOrderBySubmittedAtDesc(Long userId, Pageable pageable);
     List<Submission> findByUserIdAndStatus(Long userId, SubmissionStatus status);
 
     @Query("SELECT s FROM Submission s " +
