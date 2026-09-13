@@ -1,4 +1,4 @@
-﻿package com.shyamsunder.placement_prep_platform.service;
+package com.shyamsunder.placement_prep_platform.service;
 
 import com.shyamsunder.placement_prep_platform.dto.ResumeResponse;
 import com.shyamsunder.placement_prep_platform.entity.Resume;

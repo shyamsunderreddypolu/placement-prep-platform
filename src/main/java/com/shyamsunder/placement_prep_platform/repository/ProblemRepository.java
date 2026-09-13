@@ -1,4 +1,4 @@
-﻿package com.shyamsunder.placement_prep_platform.repository;
+package com.shyamsunder.placement_prep_platform.repository;
 
 import com.shyamsunder.placement_prep_platform.entity.Difficulty;
 import com.shyamsunder.placement_prep_platform.entity.Problem;
