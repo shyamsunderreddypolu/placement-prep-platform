@@ -20,10 +20,10 @@ const Login = () => {
 
     try {
       const data = await loginUser({ email, password });
-      login(data.token, data.email || email);
+      login(data.token, data.email || email, data.refreshToken, data.name, data.role);
       navigate('/dashboard');
     } catch (err) {
-      const msg = err.response?.data?.error || err.response?.data || 'Invalid email or password. Please try again.';
+      const msg = err.response?.data?.message || err.response?.data?.error || 'Invalid email or password. Please try again.';
       setError(typeof msg === 'string' ? msg : 'Login failed');
     } finally {
       setLoading(false);

@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
+import { uploadResume, getUserResumes, downloadResume } from '../services/resumeService';
 import AtsEvaluatorModal from '../components/AtsEvaluatorModal';
-import { uploadResume, getUserResumes } from '../services/resumeService';
-import { Upload, FileText, Calendar, ExternalLink, CheckCircle, Sparkles } from 'lucide-react';
+import { FileText, Upload, CheckCircle, Calendar, Sparkles, Download } from 'lucide-react';
 
 const Resumes = () => {
   const [resumes, setResumes] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [downloadingId, setDownloadingId] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [selectedResumeForAts, setSelectedResumeForAts] = useState(null);
@@ -18,7 +19,7 @@ const Resumes = () => {
     setError('');
     try {
       const data = await getUserResumes();
-      setResumes(data);
+      setResumes(Array.isArray(data) ? data : []);
     } catch (err) {
       setError('Failed to load resume history. Please try again.');
     } finally {
@@ -55,9 +56,21 @@ const Resumes = () => {
       setSelectedFile(null);
       fetchResumes();
     } catch (err) {
-      setError('Failed to upload resume. Please verify file format (PDF, DOCX).');
+      const msg = err.response?.data?.message || err.response?.data?.error || 'Failed to upload resume. Please verify file format (PDF, DOCX) and size (<= 5MB).';
+      setError(typeof msg === 'string' ? msg : 'Upload failed');
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleDownload = async (resume) => {
+    setDownloadingId(resume.id);
+    try {
+      await downloadResume(resume.id, resume.fileName);
+    } catch (err) {
+      setError('Failed to download resume. Access may be unauthorized or file was not found.');
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -71,14 +84,6 @@ const Resumes = () => {
       hour: '2-digit',
       minute: '2-digit',
     });
-  };
-
-  const getFullFileUrl = (url) => {
-    if (!url) return '#';
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      return url;
-    }
-    return `http://localhost:8080${url}`;
   };
 
   return (
@@ -110,11 +115,11 @@ const Resumes = () => {
                 {selectedFile ? selectedFile.name : 'Click or drop your resume file here'}
               </div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                Supports PDF, DOC, DOCX files (Max size: 10MB)
+                Supports PDF, DOCX files with secure validation (Max size: 5MB)
               </div>
               <input
                 type="file"
-                accept=".pdf,.doc,.docx"
+                accept=".pdf,.docx"
                 style={{ opacity: 0, position: 'absolute', inset: 0, cursor: 'pointer', width: '100%', height: '100%' }}
                 onChange={handleFileChange}
               />
@@ -178,15 +183,14 @@ const Resumes = () => {
                 </div>
 
                 <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
-                  <a
-                    href={getFullFileUrl(resume.fileUrl)}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
                     className="link-btn"
-                    style={{ fontSize: '0.85rem' }}
+                    style={{ fontSize: '0.85rem', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                    onClick={() => handleDownload(resume)}
+                    disabled={downloadingId === resume.id}
                   >
-                    View Document <ExternalLink size={14} />
-                  </a>
+                    <Download size={14} /> {downloadingId === resume.id ? 'Downloading...' : 'Download'}
+                  </button>
                   <button
                     className="btn-primary"
                     style={{ width: 'auto', padding: '0.4rem 0.75rem', fontSize: '0.8rem' }}

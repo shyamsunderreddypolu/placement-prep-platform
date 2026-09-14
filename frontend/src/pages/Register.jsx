@@ -35,10 +35,10 @@ const Register = () => {
         ...formData,
         graduationYear: parseInt(formData.graduationYear, 10),
       });
-      login(data.token, data.email || formData.email);
+      login(data.token, data.email || formData.email, data.refreshToken, data.name, data.role);
       navigate('/dashboard');
     } catch (err) {
-      const msg = err.response?.data?.error || err.response?.data || 'Registration failed. Please check your details.';
+      const msg = err.response?.data?.message || err.response?.data?.error || 'Registration failed. Please check your details.';
       setError(typeof msg === 'string' ? msg : 'Registration failed');
     } finally {
       setLoading(false);
