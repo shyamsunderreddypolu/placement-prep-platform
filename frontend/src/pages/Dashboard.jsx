@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import { getDifficultyStats, getTopicStats, getStreakStats } from '../services/dashboardService';
-import { Flame, Trophy, Award, Layers, HelpCircle } from 'lucide-react';
+import { getPlacementReadiness } from '../services/readinessService';
+import { getDueRevisions, submitReview } from '../services/revisionService';
+import { Flame, Trophy, Award, Target, CheckCircle2, AlertTriangle, Lightbulb, Clock, Check, RefreshCw } from 'lucide-react';
 import {
   ResponsiveContainer,
   PieChart,
@@ -11,35 +13,37 @@ import {
   Bar,
   XAxis,
   YAxis,
-  Tooltip,
-  Legend
+  Tooltip
 } from 'recharts';
 
 const Dashboard = () => {
   const [difficultyData, setDifficultyData] = useState([]);
   const [topicData, setTopicData] = useState([]);
   const [streak, setStreak] = useState({ currentStreak: 0, longestStreak: 0 });
+  const [readiness, setReadiness] = useState(null);
+  const [dueRevisions, setDueRevisions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [reviewingId, setReviewingId] = useState(null);
   const [error, setError] = useState('');
 
   const loadDashboardData = async () => {
     setLoading(true);
     setError('');
     try {
-      const [diffRes, topicRes, streakRes] = await Promise.all([
+      const [diffRes, topicRes, streakRes, readinessRes, revisionsRes] = await Promise.all([
         getDifficultyStats(),
         getTopicStats(),
-        getStreakStats()
+        getStreakStats(),
+        getPlacementReadiness().catch(() => null),
+        getDueRevisions().catch(() => [])
       ]);
 
-      // Format difficulty stats for Recharts Pie Chart
       const formattedDiff = Object.keys(diffRes).map((key) => ({
         name: key,
         value: diffRes[key]
       }));
       setDifficultyData(formattedDiff);
 
-      // Format topic stats for Recharts Bar Chart
       const formattedTopic = Object.keys(topicRes).map((key) => ({
         topic: key,
         solved: topicRes[key]
@@ -47,6 +51,8 @@ const Dashboard = () => {
       setTopicData(formattedTopic);
 
       setStreak(streakRes);
+      setReadiness(readinessRes);
+      setDueRevisions(revisionsRes);
     } catch (err) {
       setError('Failed to retrieve dashboard analytics. Verify backend connection.');
     } finally {
@@ -58,23 +64,43 @@ const Dashboard = () => {
     loadDashboardData();
   }, []);
 
+  const handleReview = async (submissionId, feedback) => {
+    setReviewingId(submissionId);
+    try {
+      await submitReview(submissionId, feedback);
+      // Remove reviewed item from local due list
+      setDueRevisions((prev) => prev.filter((item) => item.submissionId !== submissionId));
+      // Refresh readiness in background
+      getPlacementReadiness().then((res) => setReadiness(res)).catch(() => {});
+    } catch (err) {
+      alert('Failed to log revision feedback. Please try again.');
+    } finally {
+      setReviewingId(null);
+    }
+  };
+
   const totalSolved = difficultyData.reduce((sum, item) => sum + item.value, 0);
 
-  // Custom styling colors for Recharts difficulty levels
   const COLORS = {
-    EASY: '#10b981',   // Emerald Green
-    MEDIUM: '#f59e0b', // Amber/Yellow
-    HARD: '#ef4444'    // Red
+    EASY: '#10b981',
+    MEDIUM: '#f59e0b',
+    HARD: '#ef4444'
+  };
+
+  const getReadinessColor = (score) => {
+    if (score >= 75) return '#10b981';
+    if (score >= 50) return '#f59e0b';
+    return '#ef4444';
   };
 
   return (
     <>
       <Navbar />
-      <div className="page-container">
-        <div className="page-header" style={{ marginBottom: '1.5rem' }}>
+      <div className="container dashboard-container" style={{ paddingBottom: '3rem' }}>
+        <div className="dashboard-header" style={{ marginBottom: '2rem' }}>
           <div>
-            <h1 className="page-title">Placement Prep Dashboard</h1>
-            <p className="page-subtitle">Track your DSA statistics, streak progress, and interview readiness</p>
+            <h1 className="page-title">Placement Readiness Dashboard</h1>
+            <p className="page-subtitle">Track your DSA metrics, 1-4-7 revision retention, and interview readiness</p>
           </div>
         </div>
 
@@ -83,10 +109,115 @@ const Dashboard = () => {
         {loading ? (
           <div className="spinner-container">
             <div className="spinner"></div>
-            <span>Loading dashboard analytics...</span>
+            <span>Loading placement readiness metrics...</span>
           </div>
         ) : (
           <>
+            {/* Placement Readiness Score Banner */}
+            {readiness && (
+              <div
+                className="readiness-banner"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%)',
+                  border: `1px solid ${getReadinessColor(readiness.overallScore)}40`,
+                  borderRadius: '1rem',
+                  padding: '1.75rem',
+                  marginBottom: '2rem',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25)',
+                  backdropFilter: 'blur(16px)'
+                }}
+              >
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1.5rem', marginBottom: '1.25rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                    <div
+                      style={{
+                        width: '72px',
+                        height: '72px',
+                        borderRadius: '50%',
+                        border: `4px solid ${getReadinessColor(readiness.overallScore)}`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '1.65rem',
+                        fontWeight: 800,
+                        color: getReadinessColor(readiness.overallScore),
+                        background: 'rgba(15, 23, 42, 0.8)'
+                      }}
+                    >
+                      {readiness.overallScore}%
+                    </div>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Target size={20} style={{ color: 'var(--primary-accent)' }} />
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>Placement Readiness Index</h2>
+                      </div>
+                      <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: '0.25rem 0 0 0' }}>
+                        Deterministic evaluation across DSA benchmark, Resume readiness, and Consistency
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Category Breakdown Chips */}
+                  {readiness.categoryScores && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
+                      {Object.entries(readiness.categoryScores).map(([cat, score]) => (
+                        <div
+                          key={cat}
+                          style={{
+                            background: 'rgba(15, 23, 42, 0.7)',
+                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                            padding: '0.5rem 0.85rem',
+                            borderRadius: '0.5rem',
+                            textAlign: 'center'
+                          }}
+                        >
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{cat}</div>
+                          <div style={{ fontSize: '1.05rem', fontWeight: 700, color: getReadinessColor(score) }}>{score}%</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Insights & Recommendations Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                  {/* Strengths */}
+                  <div>
+                    <h4 style={{ fontSize: '0.85rem', color: '#34d399', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
+                      <CheckCircle2 size={15} /> Validated Strengths
+                    </h4>
+                    <ul style={{ paddingLeft: '1.1rem', margin: 0, fontSize: '0.85rem', color: '#cbd5e1', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                      {readiness.strengths.length > 0 ? (
+                        readiness.strengths.map((s, idx) => <li key={idx}>{s}</li>)
+                      ) : (
+                        <li style={{ color: 'var(--text-muted)' }}>Solve problems to unlock strength insights</li>
+                      )}
+                    </ul>
+                  </div>
+
+                  {/* Weaknesses */}
+                  <div>
+                    <h4 style={{ fontSize: '0.85rem', color: '#f87171', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
+                      <AlertTriangle size={15} /> Target Improvement Areas
+                    </h4>
+                    <ul style={{ paddingLeft: '1.1rem', margin: 0, fontSize: '0.85rem', color: '#cbd5e1', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                      {readiness.weaknesses.map((w, idx) => <li key={idx}>{w}</li>)}
+                    </ul>
+                  </div>
+
+                  {/* Recommendations */}
+                  <div>
+                    <h4 style={{ fontSize: '0.85rem', color: 'var(--warning-color)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
+                      <Lightbulb size={15} /> Priority Actions
+                    </h4>
+                    <ul style={{ paddingLeft: '1.1rem', margin: 0, fontSize: '0.85rem', color: '#cbd5e1', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                      {readiness.recommendations.map((r, idx) => <li key={idx}>{r}</li>)}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Quick Metrics Grid */}
             <div className="metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
               
@@ -122,6 +253,92 @@ const Dashboard = () => {
                   <div style={{ fontSize: '1.5rem', fontWeight: 700, marginTop: '0.25rem' }}>{streak.longestStreak} Days</div>
                 </div>
               </div>
+
+              {/* Due Revisions Count Card */}
+              <div className="metric-card" style={{ background: 'var(--bg-card)', padding: '1.5rem', borderRadius: '0.75rem', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '1rem', backdropFilter: 'blur(12px)' }}>
+                <div style={{ background: 'rgba(14, 165, 233, 0.15)', padding: '0.75rem', borderRadius: '0.5rem', color: '#38bdf8' }}>
+                  <Clock size={28} />
+                </div>
+                <div>
+                  <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 500 }}>1-4-7 Revisions Due</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 700, marginTop: '0.25rem' }}>{dueRevisions.length}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* 1-4-7 Revision Due Queue Widget */}
+            <div style={{ background: 'var(--bg-card)', padding: '1.5rem', borderRadius: '0.75rem', border: '1px solid var(--border-color)', marginBottom: '2rem', backdropFilter: 'blur(12px)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <RefreshCw size={18} style={{ color: 'var(--primary-accent)' }} />
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>1-4-7 Spaced Repetition Due Queue</h3>
+                </div>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Day 1 ? Day 4 ? Day 7 Retention System</span>
+              </div>
+
+              {dueRevisions.length === 0 ? (
+                <div style={{ padding: '1rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.9rem' }}>
+                  <Check size={24} style={{ color: '#10b981', display: 'block', margin: '0 auto 0.5rem auto' }} />
+                  All spaced repetition reviews are up to date! Great consistency.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {dueRevisions.map((rev) => (
+                    <div
+                      key={rev.submissionId}
+                      style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '0.85rem 1rem',
+                        background: 'rgba(15, 23, 42, 0.6)',
+                        borderRadius: '0.5rem',
+                        border: '1px solid rgba(255,255,255,0.05)',
+                        gap: '0.75rem'
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{rev.problemTitle}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.2rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                          <span style={{ textTransform: 'capitalize', color: COLORS[rev.difficulty] }}>{rev.difficulty.toLowerCase()}</span>
+                          <span>•</span>
+                          <span>{rev.topic}</span>
+                          <span>•</span>
+                          <span>Reviewed {rev.reviewCount} time(s)</span>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <button
+                          className="btn-primary"
+                          disabled={reviewingId === rev.submissionId}
+                          onClick={() => handleReview(rev.submissionId, 'EASY')}
+                          style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', background: '#059669', borderColor: '#059669' }}
+                        >
+                          Easy (+7d)
+                        </button>
+                        <button
+                          className="btn-primary"
+                          disabled={reviewingId === rev.submissionId}
+                          onClick={() => handleReview(rev.submissionId, 'NEEDS_REVIEW')}
+                          style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', background: '#d97706', borderColor: '#d97706' }}
+                        >
+                          Review (+3d)
+                        </button>
+                        <button
+                          className="btn-primary"
+                          disabled={reviewingId === rev.submissionId}
+                          onClick={() => handleReview(rev.submissionId, 'HARD')}
+                          style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', background: '#dc2626', borderColor: '#dc2626' }}
+                        >
+                          Hard (+1d)
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Charts Section */}

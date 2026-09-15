@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { analyzeResume } from '../services/atsService';
-import { X, Sparkles, CheckCircle2, AlertTriangle, Lightbulb } from 'lucide-react';
+import { X, FileText, CheckCircle2, AlertTriangle, Lightbulb, BarChart2 } from 'lucide-react';
 
 const AtsEvaluatorModal = ({ resume, onClose }) => {
   const [jobDescription, setJobDescription] = useState('');
@@ -31,11 +31,11 @@ const AtsEvaluatorModal = ({ resume, onClose }) => {
 
   return (
     <div className="modal-overlay">
-      <div className="modal-card" style={{ maxWidth: '640px', maxHeight: '90vh', overflowY: 'auto' }}>
+      <div className="modal-card" style={{ maxWidth: '680px', maxHeight: '90vh', overflowY: 'auto' }}>
         <div className="modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Sparkles size={20} style={{ color: 'var(--primary-accent)' }} />
-            <h3>AI ATS Resume Analyzer</h3>
+            <FileText size={20} style={{ color: 'var(--primary-accent)' }} />
+            <h3>Resume ATS Analyzer</h3>
           </div>
           <button className="close-btn" onClick={onClose}><X size={18} /></button>
         </div>
@@ -63,7 +63,7 @@ const AtsEvaluatorModal = ({ resume, onClose }) => {
               </div>
 
               <button type="submit" className="btn-primary" disabled={loading}>
-                {loading ? 'Analyzing Keywords & ATS Score...' : <><Sparkles size={16} /> Evaluate ATS Compatibility</>}
+                {loading ? 'Analyzing Keywords & ATS Compatibility...' : <><FileText size={16} /> Evaluate ATS Compatibility</>}
               </button>
             </form>
           ) : (
@@ -82,7 +82,7 @@ const AtsEvaluatorModal = ({ resume, onClose }) => {
                 }}
               >
                 <div>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>ATS Placement Readiness Score</div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>ATS Placement Compatibility Score</div>
                   <div style={{ fontSize: '2.25rem', fontWeight: 800, color: getScoreColor(result.score) }}>
                     {result.score}%
                   </div>
@@ -91,6 +91,37 @@ const AtsEvaluatorModal = ({ resume, onClose }) => {
                   <div style={{ width: `${result.score}%`, height: '100%', background: getScoreColor(result.score), transition: 'width 0.5s ease-out' }}></div>
                 </div>
               </div>
+
+              {/* Score Breakdown */}
+              {result.scoreBreakdown && (
+                <div style={{ background: 'rgba(30, 41, 59, 0.4)', padding: '1rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <h4 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <BarChart2 size={16} style={{ color: 'var(--primary-accent)' }} /> Transparent Weighted Breakdown
+                  </h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '0.5rem', fontSize: '0.8rem' }}>
+                    <div style={{ padding: '0.5rem', background: 'rgba(15, 23, 42, 0.5)', borderRadius: '4px' }}>
+                      <div style={{ color: 'var(--text-muted)' }}>JD Keywords</div>
+                      <div style={{ fontWeight: 700, marginTop: '2px' }}>{result.scoreBreakdown.keywordMatch}/40</div>
+                    </div>
+                    <div style={{ padding: '0.5rem', background: 'rgba(15, 23, 42, 0.5)', borderRadius: '4px' }}>
+                      <div style={{ color: 'var(--text-muted)' }}>Tech Breadth</div>
+                      <div style={{ fontWeight: 700, marginTop: '2px' }}>{result.scoreBreakdown.technicalBreadth}/25</div>
+                    </div>
+                    <div style={{ padding: '0.5rem', background: 'rgba(15, 23, 42, 0.5)', borderRadius: '4px' }}>
+                      <div style={{ color: 'var(--text-muted)' }}>Experience</div>
+                      <div style={{ fontWeight: 700, marginTop: '2px' }}>{result.scoreBreakdown.experience}/15</div>
+                    </div>
+                    <div style={{ padding: '0.5rem', background: 'rgba(15, 23, 42, 0.5)', borderRadius: '4px' }}>
+                      <div style={{ color: 'var(--text-muted)' }}>Education</div>
+                      <div style={{ fontWeight: 700, marginTop: '2px' }}>{result.scoreBreakdown.education}/10</div>
+                    </div>
+                    <div style={{ padding: '0.5rem', background: 'rgba(15, 23, 42, 0.5)', borderRadius: '4px' }}>
+                      <div style={{ color: 'var(--text-muted)' }}>Projects</div>
+                      <div style={{ fontWeight: 700, marginTop: '2px' }}>{result.scoreBreakdown.projects}/10</div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Matched Skills */}
               <div>

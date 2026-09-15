@@ -4,6 +4,7 @@ import com.shyamsunder.placement_prep_platform.dto.AtsAnalysisRequest;
 import com.shyamsunder.placement_prep_platform.dto.AtsAnalysisResponse;
 import com.shyamsunder.placement_prep_platform.entity.Resume;
 import com.shyamsunder.placement_prep_platform.entity.User;
+import com.shyamsunder.placement_prep_platform.exception.ForbiddenException;
 import com.shyamsunder.placement_prep_platform.repository.ResumeRepository;
 import com.shyamsunder.placement_prep_platform.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,7 +17,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -40,74 +40,126 @@ class AtsScorerServiceTest {
     @InjectMocks
     private AtsScorerService atsScorerService;
 
-    private User mockUser;
-    private Resume mockResume;
+    private User user;
+    private Resume resume;
 
     @BeforeEach
     void setUp() {
-        mockUser = User.builder()
+        user = User.builder()
                 .id(1L)
-                .name("Student User")
                 .email("student@test.com")
-                .passwordHash("password")
+                .name("Student")
                 .build();
 
-        mockResume = Resume.builder()
-                .id(100L)
-                .user(mockUser)
-                .fileName("java_developer_resume.pdf")
-                .fileUrl("/uploads/java_developer_resume.pdf")
-                .uploadedAt(LocalDateTime.now())
+        resume = Resume.builder()
+                .id(10L)
+                .user(user)
+                .fileName("Student_Resume_Java_SpringBoot_SQL.pdf")
+                .fileUrl("uuid-123.pdf")
                 .build();
     }
 
     @Test
-    void analyzeResume_success_matchedAndMissingSkills() {
+    void analyzeResume_unauthorizedUser_throwsForbiddenException() {
+        User differentUser = User.builder().id(2L).email("hacker@test.com").build();
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn("hacker@test.com");
+        SecurityContextHolder.setContext(securityContext);
+
+        when(userRepository.findByEmail("hacker@test.com")).thenReturn(Optional.of(differentUser));
+        when(resumeRepository.findById(10L)).thenReturn(Optional.of(resume));
+
+        AtsAnalysisRequest request = AtsAnalysisRequest.builder()
+                .resumeId(10L)
+                .jobDescription("Java Spring Boot Developer")
+                .build();
+
+        assertThrows(ForbiddenException.class, () -> atsScorerService.analyzeResume(request));
+    }
+
+    @Test
+    void analyzeResume_validOwnership_returnsAnalysisResponseWithBreakdown() {
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getName()).thenReturn("student@test.com");
         SecurityContextHolder.setContext(securityContext);
 
-        when(userRepository.findByEmail("student@test.com")).thenReturn(Optional.of(mockUser));
-        when(resumeRepository.findById(100L)).thenReturn(Optional.of(mockResume));
+        when(userRepository.findByEmail("student@test.com")).thenReturn(Optional.of(user));
+        when(resumeRepository.findById(10L)).thenReturn(Optional.of(resume));
 
         AtsAnalysisRequest request = AtsAnalysisRequest.builder()
-                .resumeId(100L)
-                .jobDescription("Java, Spring Boot, MySQL, React, Docker, Python")
+                .resumeId(10L)
+                .jobDescription("Java, React, MySQL")
                 .build();
 
         AtsAnalysisResponse response = atsScorerService.analyzeResume(request);
 
         assertNotNull(response);
-        assertEquals(100L, response.getResumeId());
-        assertEquals("java_developer_resume.pdf", response.getFileName());
-        assertTrue(response.getMatchedSkills().contains("java"));
-        assertFalse(response.getRecommendations().isEmpty());
+        assertEquals(10L, response.getResumeId());
+        assertTrue(response.getScore() >= 0);
+        assertNotNull(response.getScoreBreakdown());
+        assertTrue(response.getScoreBreakdown().containsKey("keywordMatch"));
+        assertTrue(response.getScoreBreakdown().containsKey("technicalBreadth"));
+        assertTrue(response.getScoreBreakdown().containsKey("experience"));
+        assertTrue(response.getScoreBreakdown().containsKey("education"));
+        assertTrue(response.getScoreBreakdown().containsKey("projects"));
     }
 
     @Test
-    void analyzeResume_unauthorizedUser_throwsException() {
-        User otherUser = User.builder().id(2L).email("other@test.com").build();
+    void analyzeResume_zeroMatches_returnsZeroScoreWithoutArtificialMinimum() {
+        Resume emptyResume = Resume.builder()
+                .id(20L)
+                .user(user)
+                .fileName("")
+                .fileUrl("empty.pdf")
+                .build();
 
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getName()).thenReturn("student@test.com");
         SecurityContextHolder.setContext(securityContext);
 
-        when(userRepository.findByEmail("student@test.com")).thenReturn(Optional.of(mockUser));
-        
-        Resume otherUserResume = Resume.builder()
-                .id(200L)
-                .user(otherUser)
-                .fileName("other_resume.pdf")
-                .fileUrl("/uploads/other.pdf")
-                .build();
-
-        when(resumeRepository.findById(200L)).thenReturn(Optional.of(otherUserResume));
+        when(userRepository.findByEmail("student@test.com")).thenReturn(Optional.of(user));
+        when(resumeRepository.findById(20L)).thenReturn(Optional.of(emptyResume));
 
         AtsAnalysisRequest request = AtsAnalysisRequest.builder()
-                .resumeId(200L)
-                .jobDescription("Java, MySQL")
+                .resumeId(20L)
+                .jobDescription("Rust, Flutter, Swift, Dart")
                 .build();
 
-        assertThrows(IllegalArgumentException.class, () -> atsScorerService.analyzeResume(request));
+        AtsAnalysisResponse response = atsScorerService.analyzeResume(request);
+
+        assertNotNull(response);
+        assertEquals(0, response.getScore());
+        assertTrue(response.getMatchedSkills().isEmpty());
+        assertFalse(response.getMissingSkills().isEmpty());
+    }
+
+    @Test
+    void analyzeResume_synonymNormalization_matchesVariants() {
+        Resume synonymResume = Resume.builder()
+                .id(30L)
+                .user(user)
+                .fileName("John_Doe_springboot_js_k8s.pdf")
+                .fileUrl("synonym.pdf")
+                .build();
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn("student@test.com");
+        SecurityContextHolder.setContext(securityContext);
+
+        when(userRepository.findByEmail("student@test.com")).thenReturn(Optional.of(user));
+        when(resumeRepository.findById(30L)).thenReturn(Optional.of(synonymResume));
+
+        AtsAnalysisRequest request = AtsAnalysisRequest.builder()
+                .resumeId(30L)
+                .jobDescription("Spring Boot, JavaScript, Kubernetes")
+                .build();
+
+        AtsAnalysisResponse response = atsScorerService.analyzeResume(request);
+
+        assertNotNull(response);
+        assertTrue(response.getMatchedSkills().contains("Spring Boot"));
+        assertTrue(response.getMatchedSkills().contains("JavaScript"));
+        assertTrue(response.getMatchedSkills().contains("Kubernetes"));
     }
 }

@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -18,4 +19,5 @@ public class AtsAnalysisResponse {
     private List<String> matchedSkills;
     private List<String> missingSkills;
     private List<String> recommendations;
+    private Map<String, Integer> scoreBreakdown;
 }

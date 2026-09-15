@@ -3,14 +3,17 @@ package com.shyamsunder.placement_prep_platform.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", indexes = {
+    @Index(name = "idx_user_email", columnList = "email")
+})
 @Data
 @Builder
 @NoArgsConstructor
@@ -36,20 +39,27 @@ public class User implements UserDetails {
     @Column(name = "graduation_year", nullable = false)
     private Integer graduationYear;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
+
     @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "DATETIME")
     private LocalDateTime createdAt;
 
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
+        if (role == null) {
+            role = Role.ROLE_USER;
+        }
     }
 
-    // UserDetails interface implementations
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Return empty since roles/permissions are not defined in current schema.
-        // We will default to a stateless auth schema with simple authenticated state.
-        return Collections.emptyList();
+        if (role == null) {
+            return List.of(new SimpleGrantedAuthority(Role.ROLE_USER.name()));
+        }
+        return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
     @Override
@@ -59,7 +69,7 @@ public class User implements UserDetails {
 
     @Override
     public String getUsername() {
-        return this.email; // Authentication will be based on Email
+        return this.email;
     }
 
     @Override

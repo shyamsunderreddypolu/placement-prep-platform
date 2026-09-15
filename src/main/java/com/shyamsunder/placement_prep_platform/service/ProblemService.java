@@ -6,6 +6,8 @@ import com.shyamsunder.placement_prep_platform.entity.Difficulty;
 import com.shyamsunder.placement_prep_platform.entity.Problem;
 import com.shyamsunder.placement_prep_platform.repository.ProblemRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -64,6 +66,29 @@ public class ProblemService {
         return problems.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+    }
+
+    public Page<ProblemResponse> getPagedProblems(String topic, Difficulty difficulty, String pattern, Pageable pageable) {
+        Page<Problem> problems;
+        if (topic != null && difficulty != null && pattern != null) {
+            problems = problemRepository.findByTopicAndDifficultyAndPattern(topic, difficulty, pattern, pageable);
+        } else if (topic != null && difficulty != null) {
+            problems = problemRepository.findByTopicAndDifficulty(topic, difficulty, pageable);
+        } else if (topic != null && pattern != null) {
+            problems = problemRepository.findByTopicAndPattern(topic, pattern, pageable);
+        } else if (difficulty != null && pattern != null) {
+            problems = problemRepository.findByDifficultyAndPattern(difficulty, pattern, pageable);
+        } else if (topic != null) {
+            problems = problemRepository.findByTopic(topic, pageable);
+        } else if (difficulty != null) {
+            problems = problemRepository.findByDifficulty(difficulty, pageable);
+        } else if (pattern != null) {
+            problems = problemRepository.findByPattern(pattern, pageable);
+        } else {
+            problems = problemRepository.findAll(pageable);
+        }
+
+        return problems.map(this::mapToResponse);
     }
 
     public List<String> getDistinctPatterns() {
