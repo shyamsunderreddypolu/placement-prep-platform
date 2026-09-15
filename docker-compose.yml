@@ -30,6 +30,10 @@ services:
       DB_NAME: placement_prep
       DB_USERNAME: root
       DB_PASSWORD: root
+      JWT_SECRET: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+      JWT_EXPIRATION: 900000
+      JWT_REFRESH_EXPIRATION: 604800000
+      FILE_UPLOAD_DIR: uploads
     depends_on:
       mysqldb:
         condition: service_healthy
