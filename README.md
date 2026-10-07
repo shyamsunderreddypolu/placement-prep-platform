@@ -15,18 +15,58 @@ A full-stack web application designed to help engineering students prepare syste
 
 ## Application Previews
 
-*(Screenshots can be captured when running the application locally)*
+<div align="center">
 
-| Screen | Description |
-|---|---|
-| **Dashboard & Readiness Overview** | Displays the Placement Readiness Index (PRI), active solving streak, difficulty distribution chart, and the 1-4-7 revision queue. |
-| **DSA Problem Repository** | Searchable and filterable problem catalogue by topic, difficulty, and algorithmic pattern with step-by-step visualizers. |
-| **1-4-7 Revision Queue** | Real-time queue showing problems due for recall review today with adaptive feedback controls (`EASY`, `NEEDS_REVIEW`, `HARD`). |
-| **ATS Resume Analyzer** | Side-by-side analysis of uploaded resumes against target job descriptions with transparent scoring breakdown and missing keyword extraction. |
-| **Practice Submission History** | Chronological log of past problem attempts, personal solution notes, and completion statuses. |
+### 1. Dashboard & Placement Readiness Analytics
+*Real-time Placement Readiness Index (PRI), active streak counter, solved problem distribution by difficulty (Easy/Medium/Hard), and the 1-4-7 spaced repetition revision queue.*
+
+<img src="docs/screenshots/dashboard.png" alt="Dashboard & Placement Readiness Analytics" width="950" />
 
 ---
 
+### 2. Curated DSA Problem Repository & Algorithmic Patterns
+*Searchable and filterable catalog by topic, difficulty, and algorithmic pattern with one-click external challenge links and solution logging.*
+
+<img src="docs/screenshots/problems.png" alt="DSA Problem Repository" width="950" />
+
+---
+
+### 3. Solution Logging & Automated 1-4-7 Spaced Repetition Modal
+*Interactive submission logger that captures personal solution notes, sets completion status, and automatically triggers the Day 1, 4, 7 Ebbinghaus revision schedule upon solve.*
+
+<img src="docs/screenshots/log_solution_modal.png" alt="Solution Logging & 1-4-7 Spaced Repetition" width="950" />
+
+---
+
+### 4. Transparent ATS Resume Analyzer & Upload Portal
+*PDF resume parsing with Apache Tika/PDFBox, 5-dimension weighted scoring against job descriptions, and actionable missing technical keyword recommendations.*
+
+<img src="docs/screenshots/resumes_ats.png" alt="ATS Resume Analyzer" width="950" />
+
+---
+
+### 5. Practice & Submission History
+*Chronological audit log of all practice attempts, timestamps, personal notes, and completion statuses.*
+
+<img src="docs/screenshots/submissions_history.png" alt="Submission History" width="950" />
+
+---
+
+### 6. Algorithmic Concept Flashcards
+*Quick-reference flashcards covering core algorithmic patterns, time/space complexities, and implementation strategies for rapid pre-interview revision.*
+
+<img src="docs/screenshots/flashcards.png" alt="Algorithmic Concept Flashcards" width="950" />
+
+---
+
+### 7. Secure Authentication Portal
+*Dual-token authentication portal with BCrypt password hashing, stateless JWT issuance, and automatic token refresh.*
+
+<img src="docs/screenshots/login.png" alt="Secure Authentication Portal" width="950" />
+
+</div>
+
+---
 ## Problem
 
 During college campus recruitment, students frequently juggle disconnected tools:
